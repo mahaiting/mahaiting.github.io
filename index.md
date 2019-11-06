@@ -1,4 +1,4 @@
 # LinuxONE GitHub
 > this is the home page for LinuxONE  
 
-[tape](https://mahaiting.github.io/tape1/)
+[LinuxONE DPM3.1+TS3500实施手册](https://mahaiting.github.io/LinuxONE DPM3.1+TS3500实施手册/)
