@@ -14,13 +14,13 @@ IBM System Storage TS3500 Tape Library,  LTO Ultrium-6
 ## HMC操作
 * 创建HMC账号
 登录 acsadmin, 增加一个新的账号,如tapeuser,带有如下权限:
-![](test/32B7004F-19B7-494C-A3F0-C0C6E0F9379C.png)
+![](test/32B7004F-19B7-494C-A3F0-C0C6E0F9379C%202.png)
 为新用户增加权限:
 	*  Configure Storage - Storage Administrator 
 	*  Configure Storage - System Programmer 的权限
 * 为新用户(tapeuser)增加remote api权限
-![](test/A6A66DD7-986B-4F3A-8114-C0D776DB1755.png)
-![](test/62E46B81-8296-482B-BAE1-C60E5AE0F4FE.png)
+![](test/A6A66DD7-986B-4F3A-8114-C0D776DB1755%202.png)
+![](test/62E46B81-8296-482B-BAE1-C60E5AE0F4FE%202.png)
 * 创建一个Storage Group, 并添加一块任意大小的boot盘.
 * 将Storage Group分配给LPAR
 
@@ -46,10 +46,10 @@ adapter_port_list = ['1A424A76-9C8D-11E9-A962-00106F23EEA9',
 ```
 
 通过如下方式获取Storage Group的UUID:
-![](test/D9EB683A-AFBE-499F-A409-F933D34188FF.png)
+![](test/D9EB683A-AFBE-499F-A409-F933D34188FF%202.png)
 
 通过如下方式获取HBA卡的UUID:
-![](test/05B1DBB7-2B75-40DA-99C5-1863C26258E0.png)
+![](test/05B1DBB7-2B75-40DA-99C5-1863C26258E0%202.png)
 
 
 ## 运行脚本
@@ -57,7 +57,7 @@ adapter_port_list = ['1A424A76-9C8D-11E9-A962-00106F23EEA9',
 执行成功后,可以在storage group里看到HBA已经正确识别.
 如果执行成功,注意不要再次重复执行该脚本.
 以下样例使用的是两块HBA卡的识别情况.
-![](test/9398EA96-2611-4960-AFFD-D0640EA0D8F8.png)
+![](test/9398EA96-2611-4960-AFFD-D0640EA0D8F8%202.png)
 
 - - - -
 
