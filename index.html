@@ -1,1 +1,331 @@
-Hello World
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LinuxONE DPM3.1+TS3500实施手册</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="created" content="2019-11-01T09:23:42+0800"/>
+        <meta name="modified" content="2019-11-06T09:53:03+0800"/>
+        <meta name="tags" content=""/>
+        <meta name="last device" content="马海艇的MacBook Pro"/>
+    </head>
+    <body>
+        <div class="note-wrapper">
+            <h1>LinuxONE DPM3.1+TS3500实施手册</h1>
+<p><u>2019年11月4日</u>  </p>
+<br>
+<h2>环境准备</h2>
+<ul><li>操作系统
+</li></ul>
+<p>Suse12 Sp4</p>
+<ul><li>带库
+</li></ul>
+<p>IBM System Storage TS3500 Tape Library,  LTO Ultrium-6</p>
+<br>
+<hr>
+<br>
+<blockquote>
+<p>DMP3.1默认没有实现对带库设备的识别.需要在HMC里进行手工的配置并执行一段python代码来正确识别带库设备. 请参照接下来的内容进行操作.</p>
+</blockquote>
+<br>
+<h2>HMC操作</h2>
+<ul><li>创建HMC账号
+</li></ul>
+<p>登录 acsadmin, 增加一个新的账号,如tapeuser,带有如下权限:</p>
+<p><img src='index/32B7004F-19B7-494C-A3F0-C0C6E0F9379C.png'></p>
+<p>为新用户增加权限:</p>
+<ul><li>	 Configure Storage - Storage Administrator 
+</li><li>	 Configure Storage - System Programmer 的权限
+</li><li>为新用户(tapeuser)增加remote api权限
+</li></ul>
+<p><img src='index/A6A66DD7-986B-4F3A-8114-C0D776DB1755.png'></p>
+<p><img src='index/62E46B81-8296-482B-BAE1-C60E5AE0F4FE.png'></p>
+<ul><li>创建一个Storage Group, 并添加一块任意大小的boot盘.
+</li><li>将Storage Group分配给LPAR
+</li></ul>
+<br>
+<h2>编辑Python脚本</h2>
+<p>在附件里可以找到一个名为 attach_tape.py 的脚本</p>
+<p>脚本需要修改的地方:</p>
+<pre><code class='code-multiline'># 设定HMC的IP地址
+hmc_address = "172.16.31.232"           
+# 设定账号
+hmc_userid = "tapeuser"
+# 设定密码
+hmc_password = "password"
+# 设定CPC名字
+cpc_name = 'BZ13'                    
+# 设定Storage Group的UUID,具体UUID获取方式请参考后面截图
+storage_group_uuid_customer = "38382ee2-b85d-11e9-81f0-00106f23eea9" 
+
+# 设定HBA卡的UUID,具体UUID获取方式请参考后面截图. 这里是一个数组
+# 具体数量以HBA数量为准
+adapter_port_list = ['1A424A76-9C8D-11E9-A962-00106F23EEA9',
+                     '18F97270-9C8D-11E9-A962-00106F23EEA9',]</code></pre>
+<p><br></p>
+<p>通过如下方式获取Storage Group的UUID:</p>
+<p><img src='index/D9EB683A-AFBE-499F-A409-F933D34188FF.png'></p>
+<br>
+<p>通过如下方式获取HBA卡的UUID:</p>
+<p><img src='index/05B1DBB7-2B75-40DA-99C5-1863C26258E0.png'></p>
+<br>
+<br>
+<h2>运行脚本</h2>
+<p>在python环境下,执行 attach_tape.py</p>
+<p>执行成功后,可以在storage group里看到HBA已经正确识别.</p>
+<p>如果执行成功,注意不要再次重复执行该脚本.</p>
+<p>以下样例使用的是两块HBA卡的识别情况.</p>
+<p><img src='index/9398EA96-2611-4960-AFFD-D0640EA0D8F8.png'></p>
+<br>
+<hr>
+<br>
+<blockquote>
+<p>接下来介绍连接IBM带库需要用到哪些软件, 以及下载方式.</p>
+</blockquote>
+<br>
+<h2>连接IBM带库设备的Linux on Z需要安装的驱动及工具</h2>
+<ul><li>lin_tape
+</li></ul>
+<p>lin_tape功能</p>
+<ul><li>	带库驱动
+</li><li>	Basic operation to tape (save / restore)
+</li><li>	Tape media exchange operation (mount / unmount)
+</li><li>in_taped (error diagnostic daemon)
+</li></ul>
+<p>lin_taped功能</p>
+<ul><li>	Error log and trace
+</li><li>	Automatic writing of tape drive dumps, log data, etc.
+</li><li>	Failover and Load Balancing
+</li><li>	加密
+</li><li>ITDT(IBM Tape Diagnostic Tool)
+</li></ul>
+<p>ITDT功能</p>
+<ul><li>	Recognize supported tape drives and tape libraries
+</li><li>	Tape drive diagnostics
+</li><li>	Dump from tape drive and tape library
+</li><li>	Performance measurement
+</li><li>	Acquisition of cartridge usage status
+</li></ul>
+<br>
+<h2>lin_tape 驱动下载</h2>
+<ul><li>从Fix Central下载驱动  
+</li></ul>
+<p><a href="http://www.ibm.com/support/fixcentral/">http://www.ibm.com/support/fixcentral/</a> </p>
+<p>下载下面两个文件(建议下载最新版)：</p>
+<ul><li>	lin_tape-x.xx.x-x.src.rpm (lin_tape驱动)
+</li><li>	lin_taped-x.xx.x-sles11.s390x.rpm (lin_taped daemon)
+</li></ul>
+<p><mark>请注意下载for s390x的</mark></p>
+<br>
+<ul><li>下载方法步骤
+<ul><li>	Product Selector:	 System Storage
+</li><li>	System Storage:  Tape Systems
+</li><li>	Tape Systems :  Tape drivers and software
+</li><li>	Tape drivers and software:  Tape device drivers 
+</li><li>	Platform:  Linux, 64-bit zSeries 
+</li></ul>
+</li></ul>
+<p>	选择对应操作系统版本,比如sles12,下载:</p>
+<ul><li>		lin_tape-x.xx.x-x.src.rpm
+</li><li>		lin_taped-x.xx.x-sles11.s390x.rpm
+</li><li>	ITDT工具可以一起下载下来 
+</li><li>		install_itdt_se_Linuxs390x_xxx
+</li><li>lin_tape 驱动编译说明
+</li></ul>
+<p>lin_tape 驱动是以source rpm的方式提供，需要针对安装环境build以后方可安装，进行rpmbuild的环境需要满足：</p>
+<ul><li>	同样的操作系统，同样的内核版本 
+</li><li>	安装同样版本的kernel-devel，kernel-default-devel包
+</li><li>	使用下面命令build rpm包：
+<ul><li>		rpmbuild --rebuild  lin_tape-3.0.39-1.src.rpm 
+</li><li>		完成的rpm包位于<i>usr</i>src<i>packages</i>RPMS/s390x
+</li><li>		Build出来的rpm包可用于相同操作系统相同内核版本的lin_tape驱动安装
+</li></ul>
+</li></ul>
+<br>
+<hr>
+<br>
+<blockquote>
+<p>Tape 驱动和工具安装步骤</p>
+</blockquote>
+<br>
+<h2>Tape 驱动和工具安装步骤(1) </h2>
+<pre><code class='code-multiline'>lin_tape安装前准备
+# cp -p /etc/modprobe.d/10-unsupported-modules.conf /etc/modprobe.d/10-unsupported-modules.conf.bk
+# vi /etc/modprobe.d/10-unsupported-modules.conf
+# cat /etc/modprobe.d/10-unsupported-modules.conf
+…
+allow_unsupported_modules 1</code></pre>
+<p><br></p>
+<p><mark>allow_unsuported_modules设置为1</mark></p>
+<p><mark>缺省值为0，表示只有包含在安装DVD中的kernel module才能load，改为1，则其它module可以load。</mark></p>
+<br>
+<h2>Tape 驱动和工具安装步骤(2) </h2>
+<pre><code class='code-multiline'>lin_tape驱动rebuild
+# rpmbuild --rebuild lin_tape-3.0.39-1.src.rpm
+
+lin_tape驱动安装
+# rpm -ivh /usr/src/packages/RPMS/s390x/lin_tape-3.0.39-1.s390x.rpm
+Preparing...                ########################################### [100%]
+   1:lin_tape               ########################################### [100%]
+Starting lin_tape: FATAL: module '/lib/modules/4.4.140-94.42-default/kernel/drivers/scsi/lin_tape.ko' is unsupported
+Use --allow-unsupported or set allow_unsupported_modules to 1 in
+/etc/modprobe.d/unsupported-modules
+lin_tape loaded</code></pre>
+<p><br></p>
+<h2>Tape驱动和工具安装步骤(3) </h2>
+<p>lin_taped daemon安装</p>
+<pre><code class='code-multiline'>lin_taped 安装
+# rpm -ivh lin_taped-3.0.39-sles12.s390x.rpm
+Preparing...                ########################################### [100%]
+   1:lin_taped              ########################################### [100%]
+Starting lin_tape: FATAL: module '/lib/modules/4.4.140-94.42-default/kernel/drivers/scsi/lin_tape.ko' is unsupported
+Use --allow-unsupported or set allow_unsupported_modules to 1 in
+/etc/modprobe.d/unsupported-modules
+lin_tape loaded</code></pre>
+<p><br></p>
+<p>检查安装结果</p>
+<pre><code class='code-multiline'># rpm -qa |grep lin_tape
+lin_tape-3.0.39-1
+lin_taped-3.0.39-1
+# lsmod|grep lin_tape
+Module                  Size  Used by
+lin_tape              487424  2
+&lt;省略&gt;
+# modprobe --allow-unsupported lin_tape  (如果需要手工load）</code></pre>
+<p><br></p>
+<hr>
+<br>
+<blockquote>
+<p>带库设备在操作系统内的识别过程</p>
+</blockquote>
+<br>
+<h2>带库设备操作系统识别过程 (1) </h2>
+<pre><code class='code-multiline'>1.FCP设备识别
+# lscss -t 1732
+Device   Subchan.  DevType CU Type Use  PIM PAM POM  CHPIDs
+----------------------------------------------------------------------
+0.0.c8c3 0.0.377b  1732/03 1731/03      80  80  ff   b6000000 00000000
+0.0.c8c4 0.0.377c  1732/03 1731/03      80  80  ff   b6000000 00000000
+
+# zfcp_host_configure 0.0.c8c3 1
+
+# zfcp_host_configure 0.0.c8c4 1
+
+# lscss -t 1732
+Device   Subchan.  DevType CU Type Use  PIM PAM POM  CHPIDs
+----------------------------------------------------------------------
+0.0.c8c3 0.0.377b  1732/03 1731/03 yes  80  80  ff   b6000000 00000000
+0.0.c8c4 0.0.377c  1732/03 1731/03 yes  80  80  ff   b6000000 00000000
+
+*如果是动态加入FCP设备，lscss没有列出，应先执行cio_ignore命令
+# cio_ignore –r 0.0.c8c3,0.0.c8c4
+
+2.配置带库zfcp设备 （SLES11，如果有多条path到带库设备，需要逐一定义）
+# zfcp_disk_configure 0.0.c8c3 0x500507630f5bc803 0x0000000000000000 1
+
+# zfcp_disk_configure 0.0.c8c4 0x500507630f5bc803 0x0001000000000000 1
+
+3.确认带库设备正确识别
+# cat /proc/scsi/IBMtape
+lin_tape version: 1.73.0
+lin_tape major number: 253
+Attached Tape Devices:
+Number  model       SN                HBA             SCSI            FO Path
+0       ULT3580-TD3 1210006061        zfcp            2:0:2:0         NA
+
+# cat /proc/scsi/IBMchanger
+lin_tape version: 1.73.0
+lin_tape major number: 253
+Attached Changer Devices:
+Number  model       SN                HBA             SCSI            FO Path
+0       03584L32    0000000189710411  zfcp                            NA
+
+•以上第2步骤适用SLES11， SLES12会自动配置zfcp设备。
+
+4./etc/udev/rules.d/ 确认下面相关文件生成
+# ls /etc/udev/rules.d/ |grep -E "(c8c3|c8c4)"
+51-zfcp-0.0.c8c3.rules
+51-zfcp-0.0.c8c4.rules
+
+5.确认文件内容 （sles11,12有区别）
+# cat /etc/udev/rules.d/51-zfcp-0.0.c8c3.rules
+# Configure zFCP device at 0.0.c8c3
+ACTION=="add", SUBSYSTEM=="ccw", KERNEL=="0.0.c8c3", IMPORT{program}="collect 0.0.c8c3 %k 0.0.c8c3 zfcp"
+ACTION=="add", SUBSYSTEM=="drivers", KERNEL=="zfcp", IMPORT{program}="collect 0.0.c8c3 %k 0.0.c8c3 zfcp"
+ACTION=="add", ENV{COLLECT_0.0.c8c3}=="0", ATTR{[ccw/0.0.c8c3]online}="1"
+ACTION=="add", KERNEL=="rport-*", ATTR{port_name}=="0x500507630f5bc803", SUBSYSTEMS=="ccw", KERNELS=="0.0.c8c3", ATTR{[ccw/0.0.c8c3]0x500507630f5bc803/unit_add}="0x0000000000000000"
+
+# cat /etc/udev/rules.d/51-zfcp-0.0.c8c4.rules
+# Configure zFCP device at 0.0.c8c4
+ACTION=="add", SUBSYSTEM=="ccw", KERNEL=="0.0.c8c4", IMPORT{program}="collect 0.0.c8c4 %k 0.0.c8c4 zfcp"
+ACTION=="add", SUBSYSTEM=="drivers", KERNEL=="zfcp", IMPORT{program}="collect 0.0.c8c4 %k 0.0.c8c4 zfcp"
+ACTION=="add", ENV{COLLECT_0.0.c8c4}=="0", ATTR{[ccw/0.0.c8c4]online}="1"
+ACTION=="add", KERNEL=="rport-*", ATTR{port_name}=="0x500507630f5bc803", SUBSYSTEMS=="ccw", KERNELS=="0.0.c8c4", ATTR{[ccw/0.0.c8c4]0x500507630f5bc803/unit_add}="0x0001000000000000”
+
+6.确认设备（IBMtape， IBMchanger）
+# ls –l /dev/IBM*</code></pre>
+<p><br></p>
+<hr>
+<br>
+<blockquote>
+<p>ITDT是带库设备诊断工具</p>
+<p>接下来介绍如何安装ITDT</p>
+</blockquote>
+<br>
+<h2>ITDT安装 </h2>
+<p>IBM Tape Diagnostic Tool安装</p>
+<pre><code class='code-multiline'># chmod +x install_itdt_se_Linuxs390x_9.3.0.20181029
+
+# ./install_itdt_se_Linuxs390x_9.3.0.20181029
+
+# ./itdt
+Please wait for startup completion....  (Q to quit)
+(以下省略)
+ IBM Tape Diagnostic Tool Standard Edition - Version: 6.1.0.055
+
+     Entry Menu
+
+     [S] Scan for tape drives (Diagnostic/Maintenance Mode)
+     [U] Tapeutil (Expert Mode)
+
+     [H] Help
+     [Q] Quit program
+(以下省略)</code></pre>
+<p><br></p>
+<hr>
+<br>
+<blockquote>
+<p>因为故障或维修,比如光纤线断开或更换驱动器等操作,可能会导致带库无法正常恢复. 通过设置TMO来避免该问题. 因此, 要求必须设置TMO.</p>
+</blockquote>
+<br>
+<h2>设置TMO的方法</h2>
+<p>增加rules:</p>
+<pre><code class='code-multiline'>vi /etc/udev/rules.d/52-rport-tmos.rules 添加如下内容:
+ACTION=="add", KERNEL=="rport-*", ATTR{fast_io_fail_tmo}=="?*", ATTR{fast_io_fail_tmo}="5" ACTION=="add", KERNEL=="rport-*", ATTR{dev_loss_tmo}=="?*", ATTR{dev_loss_tmo}="2147483647" 
+执行如下命令生效:
+# udevadm trigger --subsystem-match=fc_remote_ports --action=add 
+确认修改成功:
+# lszfcp -Pa | grep tmo 
+</code></pre>
+        </div>
+        <script type="text/javascript">
+            (function() {
+
+    var doc_ols = document.getElementsByTagName("ol");
+
+    for ( i=0; i<doc_ols.length; i++) {
+
+        var ol_start = doc_ols[i].getAttribute("start") - 1;
+        doc_ols[i].setAttribute("style", "counter-reset:ol_counter " + ol_start + ";");
+
+    }
+
+})();
+
+        </script>
+        <style>
+            html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{margin:0;padding:0;border:0;font:inherit;font-size:100%;vertical-align:baseline}html{line-height:1}ol,ul{list-style:none}table{border-collapse:collapse;border-spacing:0}caption,th,td{text-align:left;font-weight:normal;vertical-align:middle}q,blockquote{quotes:none}q:before,q:after,blockquote:before,blockquote:after{content:"";content:none}a img{border:none}article,aside,details,figcaption,figure,footer,header,hgroup,main,menu,nav,section,summary{display:block}*{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}html{font-size:87.5%;line-height:1.57143em}html{font-size:14px;line-height:1.6em;-webkit-text-size-adjust:100%}body{background:#fcfcfc;color:#545454;text-rendering:optimizeLegibility;font-family:"AvenirNext-Regular"}a{color:#de4c4f;text-decoration:none}h1{font-family:"AvenirNext-Medium";color:#333;font-size:1.6em;line-height:1.3em;margin-bottom:.78571em}h2{font-family:"AvenirNext-Medium";color:#333;font-size:1.3em;line-height:1em;margin-bottom:.62857em}h3{font-family:"AvenirNext-Medium";color:#333;font-size:1.15em;line-height:1em;margin-bottom:.47143em}p{margin-bottom:1.57143em;hyphens:auto}hr{height:1px;border:0;background-color:#dedede;margin:-1px auto 1.57143em auto}ul,ol{margin-bottom:.31429em}ul ul,ul ol,ol ul,ol ol{margin-bottom:0px}ol{counter-reset:ol_counter}ol li:before{content:counter(ol_counter) ".";counter-increment:ol_counter;color:#e06e73;text-align:right;display:inline-block;min-width:1em;margin-right:0.5em}b,strong{font-family:"AvenirNext-Bold"}i,em{font-family:"AvenirNext-Italic"}code{font-family:"Menlo-Regular"}.text-overflow-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sf_code_string,.sf_code_selector,.sf_code_attr-name,.sf_code_char,.sf_code_builtin,.sf_code_inserted{color:#D33905}.sf_code_comment,.sf_code_prolog,.sf_code_doctype,.sf_code_cdata{color:#838383}.sf_code_number,.sf_code_boolean{color:#0E73A2}.sf_code_keyword,.sf_code_atrule,.sf_code_rule,.sf_code_attr-value,.sf_code_function,.sf_code_class-name,.sf_code_class,.sf_code_regex,.sf_code_important,.sf_code_variable,.sf_code_interpolation{color:#0E73A2}.sf_code_property,.sf_code_tag,.sf_code_constant,.sf_code_symbol,.sf_code_deleted{color:#1B00CE}.sf_code_macro,.sf_code_entity,.sf_code_operator,.sf_code_url{color:#920448}.note-wrapper{max-width:46em;margin:0px auto;padding:1.57143em 3.14286em}.note-wrapper.spotlight-preview{overflow-x:hidden}u{text-decoration:none;background-image:linear-gradient(to bottom, rgba(0,0,0,0) 50%,#e06e73 50%);background-repeat:repeat-x;background-size:2px 2px;background-position:0 1.05em}s{color:#878787}p{margin-bottom:0.1em}hr{margin-bottom:0.7em;margin-top:0.7em}ul li{text-indent:-0.35em}ul li:before{content:"•";color:#e06e73;display:inline-block;margin-right:0.3em}ul ul{margin-left:1.25714em}ol li{text-indent:-1.45em}ol ol{margin-left:1.25714em}blockquote{display:block;margin-left:-1em;padding-left:0.8em;border-left:0.2em solid #e06e73}.todo-list ul{margin-left:1.88571em}.todo-list li{text-indent:-1.75em}.todo-list li:before{content:"";display:static;margin-right:0px}.todo-checkbox{text-indent:-1.7em}.todo-checkbox svg{margin-right:0.3em;position:relative;top:0.2em}.todo-checkbox svg #check{display:none}.todo-checkbox.todo-checked #check{display:inline}.todo-checkbox.todo-checked+.todo-text{text-decoration:line-through;color:#878787}.code-inline{display:inline;background:white;border:solid 1px #dedede;padding:0.2em 0.5em;font-size:0.9em}.code-multiline{display:block;background:white;border:solid 1px #dedede;padding:0.7em 1em;font-size:0.9em;overflow-x:auto}.hashtag{display:inline-block;color:white;background:#b8bfc2;padding:0.0em 0.5em;border-radius:1em;text-indent:0}.hashtag a{color:#fff}.address a{color:#545454;background-image:linear-gradient(to bottom, rgba(0,0,0,0) 50%,#0da35e 50%);background-repeat:repeat-x;background-size:2px 2px;background-position:0 1.05em}.address svg{position:relative;top:0.2em;display:inline-block;margin-right:0.2em}.color-preview{display:inline-block;width:1em;height:1em;border:solid 1px rgba(0,0,0,0.3);border-radius:50%;margin-right:0.1em;position:relative;top:0.2em;white-space:nowrap}.color-code{margin-right:0.2em;font-family:"Menlo-Regular";font-size:0.9em}.color-hash{opacity:0.4}.ordered-list-number{color:#e06e73;text-align:right;display:inline-block;min-width:1em}.arrow svg{position:relative;top:0.08em;display:inline-block;margin-right:0.15em;margin-left:0.15em}.arrow svg #rod{stroke:#545454}.arrow svg #point{fill:#545454}mark{color:inherit;display:inline;padding:0.2em 0.5em;background-color:#fcffc0}img{max-width:100%;height:auto}
+
+        </style>
+    </body>
+</html>
