@@ -1,4 +1,8 @@
 # LinuxONE GitHub
-> this is the home page for LinuxONE  
+> 网站建设中  
 
-[LinuxONE DPM3.1+TS3500实施手册](https://mahaiting.github.io/LinuxONE DPM3.1+TS3500实施手册/)
+## 常用资源（只能IBM内部访问）
+1. [zATS技术交流(ats.linuxone.cn)](ats.linuxone.cn)
+2. 跳转机
+ssh ats.linuxone.cn root/zlinux
+#linuxone
