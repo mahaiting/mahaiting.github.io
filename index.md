@@ -2,51 +2,37 @@
 ## LinuxONE Chart v1.0
 > 用于解析nmon, hyptop, cpumf并生成图形html报告直接在线查看.  
 > 该工具处于开发阶段,暂未对外公布.  
-> HTML Report Demo地址(IBM内部访问): [http://chart.linuxone.cn/output](http://chart.linuxone.cn/output)  
 
-## 总览
-![](index/A4291159-169A-4CE9-A5E3-77CB410D5352%205.png)
+cpuplugd测试数据DEMO地址(IBM内部访问): [http://chart.linuxone.cn/cpuplugd](http://chart.linuxone.cn/cpuplugd)
 
-## 基于Hyptop提取的数据
-### 指定LPAR的Core使用量(1颗物理IFL=100)
-![](index/6B637D83-9583-47D8-9788-2F4D64CDF8D7%205.png)
+## cpuplugd测试数据说明
+进入目录后会出现10个G开头的目录，G01-G10对应的是10个测试场景，点击某个场景名可以查看。
+注：coremap里面保存的是每个场景的coremap和LPAR weight。
+![](index/5DA0DEA9-F0E1-4A90-83F1-784752803D28.png)
 
-### 指定LPAR的Core MGM使用量(1颗物理IFL=100)
-![](index/DC637938-099F-4DFA-930E-EF71A80921D0%204.png)
+进入某个场景后，里面会显示该场景下全部LPAR的数据，比如红框内代表的是G01的LPAR10的全部性能数据。
+主要关注如下类似的两个文件名：
+* G01_LPAR10.linuxonechart.html
+这里面包含的是LPAR的性能数据图形报表，直接点击查看。
+页面打开后，最上面有一排按钮，点击后即可生成对应的图形。
+* G01_LPAR10_jmeter_html_report/
+这里面包含的是Jmeter客户端的性能数据，比如TPS/Response Time等。
+![](index/B3B07561-78C4-4807-92BE-CD1C0FFCD5F5.png)
 
-### 指定LPAR的Core Thread使用量(开启SMT2,每颗物理IFL包含2个线程, 1个线程=100)
-![](index/D4848946-37CA-44B8-97A3-47D2A43EC344%204.png)
+### 原始数据说明
+* G01_LPAR10.20200323204553.cpumf
+cpumf的原始数据
+* G01_LPAR10.20200323204553.csv.tar.gz
+发压工具Jmeter作为客户端收集到的数据，TPS/Response Time等原始数据都打包放到了这里
+* G01_LPAR10.20200323204553.hyptop
+hyptop的原始数据
+* G01_LPAR10.20200323204553.nmon
+nmon的原始数据
+* G01_LPAR10.20200323204553.top
+top的原始数据
+* G01_LPAR10.conf.txt
+Jmeter发压时的配置文件，记录了初始线程，目标线程等基础信息
+* G01_LPAR10.jmeter.log
+Jmeter的压力日志，里面每6秒会汇总一次TPS/Response Time和Active Thread
 
-- - - -
-
-### 整机Core的使用量(1IFL=100)
-![](index/FEF6B79D-55B8-4871-891D-B0CA9E3C221F%204.png)
-
-### 整机Core Thread使用量(开启SMT2,每颗物理IFL包含2个线程, 1个线程=100)
-![](index/D1215A35-6303-4177-941C-B4970720C95D%204.png)
-
-### 整机Core vs Core Thread
-![](index/251AFF6B-B003-4C3C-B22B-41CBF7B94012%204.png)
-
-- - - -
-
-## 基于CPUMF提取的数据
-
-### CPUMF : L2P L3P L4LP L4RP MEMP
-![](index/A7F5B881-41DE-4D32-AC1A-452955858C43%205.png)
-
-### CPUMF: CPI L1MP
-![](index/ECC11D35-565A-4044-BC8D-66A36D5933F9%205.png)
-
-- - - -
-## 基于nmon提取的数据
-### CPU
-![](index/EF509C3F-D97D-46B5-8E91-1A14EC41820F.png)
-
-
-### 网络
-![](index/3BD4D6ED-A0C1-429A-8D5B-52F291F2C726%203.png)
-
-### 磁盘
-![](index/3F5ABB25-B32A-47AC-892A-298E641B9BA8%203.png)
 
